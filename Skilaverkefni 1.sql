@@ -107,12 +107,15 @@ END//
 
 DELIMITER ;
 
+-- testing for deleting an allowed course
 set @number = 0;
 
 call DeleteCourse('VSH3A3U', @number);
 
 select @number;
 
+
+-- testing for deleting a disallowed course
 INSERT INTO TrackCourses(trackID, courseNumber, semester, mandatory)
 VALUES (9, 'GSF3B3U', 6, 0);
 
@@ -166,3 +169,68 @@ SELECT TotalTRackCredits(9);
 
 
 /* 8 */
+DROP FUNCTION IF EXISTS HighestCredits;
+DELIMITER //
+
+CREATE FUNCTION HighestCredits() RETURNS INT
+BEGIN
+	DECLARE num INT;
+    
+    SELECT MAX(courseCredits) INTO num
+    FROM Courses;
+
+	RETURN(num);
+END//
+
+DELIMITER ;
+
+
+
+SELECT HighestCredits();
+
+
+/* 9 */
+DROP FUNCTION IF EXISTS TopTracksDivision;
+DELIMITER //
+
+CREATE FUNCTION TopTracksDivision() RETURNS INT
+BEGIN
+	DECLARE num INT;
+    
+    SELECT COUNT(*) as TrackCount into num
+    FROM Tracks
+    GROUP BY divisionID
+    ORDER BY TrackCount DESC -- Largest value first
+    LIMIT 1;
+
+	RETURN(num);
+END//
+
+DELIMITER ;
+
+SELECT TopTracksDivision();
+
+
+/* 10 */
+DROP FUNCTION IF EXISTS leastRestrictedCourseNumber;
+DELIMITER //
+
+CREATE FUNCTION leastRestrictedCourseNumber() RETURNS INT
+BEGIN
+	DECLARE num INT;
+    
+    SELECT COUNT(*) as CourseCount into num
+    FROM Restrictors
+    GROUP BY courseNumber
+    ORDER BY CourseCount ASC -- Smallest value first
+    LIMIT 1;
+    
+	RETURN(num);
+END//
+
+DELIMITER ;
+
+SELECT leastRestrictedCourseNumber();
+
+
+
