@@ -1,13 +1,13 @@
-drop database if exists ProgressTracker_V1;
+drop database if exists 1803982879_ProgressTracker_V1;
 
-create database ProgressTracker_V1
+create database 1803982879_ProgressTracker_V1
 	default character set utf8
 	default collate utf8_general_ci;
 
 set default_storage_engine = innodb;
 set sql_mode = 'STRICT_ALL_TABLES';
 
-use ProgressTracker_V1;
+use 1803982879_ProgressTracker_V1;
 
 -- School information
 create table Schools
@@ -44,8 +44,10 @@ create table Courses
   courseNumber char(10),
   courseName varchar(75) not null,
   courseCredits tinyint(4) default 3,
+  divisionID int not null,
   constraint course_PK primary key(courseNumber),
-  constraint name_unique unique(courseName)
+  constraint name_unique unique(courseName),
+  constraint course_division_FK foreign key(divisionID) references Divisions(divisionID)
 );
 
 -- A course may or may not have restrictors applied to them
@@ -59,13 +61,14 @@ create table Restrictors
   constraint restrictor_course_FK foreign key (courseNumber) references Courses (courseNumber)
 );
 
+
 -- Courses belonging to a certain track. A track can belong to more then one track(N:M)
 create table TrackCourses
 (
 	trackID int not null,
     courseNumber char(10) not null,
-    semester tinyint unsigned null,
-    mandatory tinyint unsigned,
+    semester int null,
+    mandatory tinyint unsigned default 1,
     constraint trackcourse_PK primary key(trackID,courseNumber),
     constraint track_course_tracks_FK foreign key(trackID) references Tracks(trackID),
     constraint track_course_courses_FK foreign key(courseNumber) references Courses(courseNumber)
