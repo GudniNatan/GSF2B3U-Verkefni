@@ -189,6 +189,7 @@ select * from StudentCourses;
 
 DROP PROCEDURE IF EXISTS NewStudent;
 DELIMITER //
+-- Adds a student and registers all required courses for them.
 
 CREATE PROCEDURE NewStudent(IN sID char(10), IN sName char(255), IN tID int)
 BEGIN
