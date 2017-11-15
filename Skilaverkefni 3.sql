@@ -48,6 +48,7 @@ BEGIN
 					FETCH course_cursor INTO cur_course;                    
 					
 					IF v_finished = 1 THEN 
+						SET v_finished = 0;
 						LEAVE courses_loop;
 					END IF;
                     
@@ -126,7 +127,7 @@ SET schoolInfo='
 	"schoolType":["Vocational", "Private"],
 	"founded":2008,
     "website":"http://www.tskoli.is/",
-    "abbreviation":"tskoli"
+    "abbreviation":["tskoli"]
 }
 '
 WHERE schoolID=1; 
@@ -139,7 +140,7 @@ VALUES
     "headmaster":"Yngvi Pétursson",
     "classrooms":40,
     "website":"http://www.mr.is/",
-    "abbreviation":"MR"
+    "abbreviation":["MR"]
     
 }
 '),
@@ -149,7 +150,7 @@ VALUES
     "headteacher":"Guðrún Hrefna Guðmundsdóttir",
     "slogan":"Lykill að framtíðinni",
     "website":"http://www.fb.is/",
-    "abbreviation":"FB"
+    "abbreviation":["FB"]
 }
 '),
 ('Verzlunarskóli Íslands', '
@@ -164,3 +165,67 @@ VALUES
 ');
 
 
+DROP PROCEDURE IF EXISTS getAllSchoolInfo;
+DELIMITER //
+
+CREATE PROCEDURE getAllSchoolInfo()
+BEGIN
+
+    DECLARE j JSON;
+    DECLARE single_keys JSON;
+    DECLARE js_keys JSON;
+    DECLARE i int default 0;
+    DECLARE statement TEXT default 'SELECT schoolName';
+	DECLARE v_finished INTEGER DEFAULT 0;
+
+	DEClARE json_cursor CURSOR FOR 
+		SELECT schoolInfo FROM Schools;
+
+	-- declare NOT FOUND handler
+	DECLARE CONTINUE HANDLER 
+		FOR NOT FOUND SET v_finished = 1;
+        
+	SET js_keys = JSON_ARRAY();
+    
+	OPEN json_cursor;
+		json_loop: LOOP
+	 
+			FETCH json_cursor INTO j;
+            
+			IF v_finished = 1 THEN 
+				LEAVE json_loop;
+			END IF;
+            
+            SET i = JSON_LENGTH(JSON_KEYS(j));
+            SET single_keys = JSON_KEYS(j);
+            
+            WHILE i > 0 DO
+				SET i = i - 1;
+				
+				IF JSON_CONTAINS(js_keys, JSON_EXTRACT(single_keys, CONCAT('$[', i, ']'))) = 0 THEN
+					SET js_keys = JSON_ARRAY_APPEND(js_keys, '$', JSON_EXTRACT(single_keys, CONCAT('$[', i, ']')));
+				END IF;
+			END WHILE;
+        END LOOP json_loop;
+	CLOSE json_cursor;
+    
+	SET i = JSON_LENGTH(js_keys);
+	
+	WHILE i > 0 DO
+		SET i = i - 1;
+        
+        SET statement = CONCAT(statement, ',schoolinfo->\'$.', JSON_EXTRACT(js_keys, CONCAT('$[', i, ']')), '\' as ', JSON_EXTRACT(js_keys, CONCAT('$[', i, ']')));
+		
+	END WHILE;
+    
+	SET statement = CONCAT(statement, 'from Schools');
+    SET @statement = statement;
+    PREPARE stmt1 FROM @statement;
+    EXECUTE stmt1;
+	DEALLOCATE PREPARE stmt1;
+	
+END//
+
+DELIMITER ;
+
+call getAllSchoolInfo();

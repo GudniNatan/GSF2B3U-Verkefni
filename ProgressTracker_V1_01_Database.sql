@@ -33,7 +33,7 @@ create table Tracks
 	trackID int auto_increment,
     trackName varchar(75),
     validFrom date,
-    divisionID int not null,
+    divisionID int not null default 1,
     constraint track_PK primary key(trackID),
     constraint track_division_FK foreign key(divisionID) references Divisions(divisionID)
 );
@@ -44,7 +44,7 @@ create table Courses
   courseNumber char(10),
   courseName varchar(75) not null,
   courseCredits tinyint(4) default 3,
-  divisionID int not null,
+  divisionID int not null default 1,
   constraint course_PK primary key(courseNumber),
   constraint name_unique unique(courseName),
   constraint course_division_FK foreign key(divisionID) references Divisions(divisionID)
