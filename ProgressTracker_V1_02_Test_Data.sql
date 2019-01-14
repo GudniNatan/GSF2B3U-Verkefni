@@ -124,6 +124,7 @@ create table Students
 	studentID char(10), -- kennitala
     studentName varchar(255),
     trackID int, 
+    student_email varchar(95),
     constraint studentID primary key(studentID),
 	constraint student_track_FK foreign key(trackID) references Tracks(trackID)
 );
